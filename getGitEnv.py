@@ -23,12 +23,16 @@ if len(sys.argv) < 2:
   print '\n'
   print 'Options:'
   print '-p\tautomatically pulls'
+  print '-l\list environments'
   exit()
 
 autopull = False
+listEnv = False
 for arg in sys.argv:
   if arg == "-p":
     autopull = True
+  if arg == '-l':
+    listEnv = True
 
 envName = sys.argv[1]
 print 'Fetching environment ' + envName
@@ -39,7 +43,7 @@ if os.path.isfile(ENVFILE):
     existingEnv = json.load(jsonFile)
 
 for environment in existingEnv[ENVIRONMENTS]:
-  if environment == envName:
+  if not listEnv and environment == envName:
     for dir in existingEnv[ENVIRONMENTS][environment][REPOS]:
       print 'Repo: ' + dir
       branchName = existingEnv[ENVIRONMENTS][environment][REPOS][dir]
@@ -53,5 +57,7 @@ for environment in existingEnv[ENVIRONMENTS]:
       if autopull:
         repo.git.pull()
     exit()
+  else:
+      print environment
 
 print 'Done.';

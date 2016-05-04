@@ -16,6 +16,7 @@ A team member suggested “git environments” for our collection of repositorie
 		Called via “getGitEnv.py <Environment Name> <options>”
 			Options:
 				-p	automatically pulls after switching branches
+				-l	list environments
 
 
 Requires gitpython:   ‘pip install gitpython’
