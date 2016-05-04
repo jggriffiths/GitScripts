@@ -16,21 +16,28 @@ if len(sys.argv) < 2:
   print '\n'
   print 'Options:'
   print '-f\toverwrites exsiting environment'
+  print '-d\tdry run - only print existing environment setup' 
   exit()
 
 envName = sys.argv[1]
 print 'Creating environment ' + envName
 
 overwrite = False
+dryrun = False
 for arg in sys.argv:
   if arg == "-f":
-    overwrite = true;
+    overwrite = True
+  if arg == "-d":
+    dryrun = True
 
 repos = {}
 for dir in next(os.walk(ROOTDIR))[1]:
   repo = Repo(dir)
   repos[dir] = str(repo.active_branch);
   print 'Found: ' + dir + ' => ' + str(repo.active_branch)
+
+if dryrun:
+  exit()
 
 existingEnv = {ENVIRONMENTS: dict()}
 if os.path.isfile(ENVFILE):
@@ -46,3 +53,5 @@ newEnv = {REPOS: repos}
 existingEnv[ENVIRONMENTS][envName] = newEnv
 with open(ENVFILE, 'w+') as outfile:
     json.dump(existingEnv, outfile)
+
+  

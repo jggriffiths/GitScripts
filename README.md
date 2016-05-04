@@ -9,6 +9,7 @@ A team member suggested “git environments” for our collection of repositorie
 		Called via “setGitEnv.py <Environment Name> <options>”
 			Options:
 				-f	overwrites an environment of the same name
+				-d	dry run - print current repositories and branch
 
 ‘getGetEnv.py’ -> pulls an environment from the .gitEnvironments file and then attempts to checkout the associated branch
 
