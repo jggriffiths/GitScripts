@@ -3,6 +3,7 @@
 import os
 import sys
 import json
+import collections
 from git import Repo
 join = os.path.join
 
@@ -65,7 +66,8 @@ if envName != '':
       if autopull:
         repo.git.pull()
 elif listEnv:
-  for env in envs:
+  orderedEnvs = collections.OrderedDict(sorted(envs.items()))
+  for env in orderedEnvs:
     print env
 
 print 'Done.';
