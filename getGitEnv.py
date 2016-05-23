@@ -3,6 +3,7 @@
 import os
 import sys
 import json
+import collections
 from git import Repo
 join = os.path.join
 
@@ -28,25 +29,33 @@ if len(sys.argv) < 2:
 
 autopull = False
 listEnv = False
+envName = ''
 for arg in sys.argv:
+  if arg == sys.argv[0]:
+    continue
   if arg == "-p":
     autopull = True
-  if arg == '-l':
+  elif arg == '-l':
     listEnv = True
-
-envName = sys.argv[1]
-print 'Fetching environment ' + envName
+  else:
+    envName = arg
+   
+print 'Fetching environment: ' + envName
 
 existingEnv = {ENVIRONMENTS: dict()}
 if os.path.isfile(ENVFILE):
   with open(ENVFILE) as jsonFile:
     existingEnv = json.load(jsonFile)
 
-for environment in existingEnv[ENVIRONMENTS]:
-  if not listEnv and environment == envName:
-    for dir in existingEnv[ENVIRONMENTS][environment][REPOS]:
+
+envs = existingEnv[ENVIRONMENTS]
+if envName != '':
+  targetEnv = envs.get(envName, None)
+  if targetEnv != None:
+    print 'Found Target Env: ' + envName
+    for dir in targetEnv[REPOS]:
       print 'Repo: ' + dir
-      branchName = existingEnv[ENVIRONMENTS][environment][REPOS][dir]
+      branchName = targetEnv[REPOS][dir]
       print 'Branch: ' + branchName
       repo = Repo(join(ROOTDIR, dir))
       #origin = repo.remotes.origin
@@ -56,8 +65,9 @@ for environment in existingEnv[ENVIRONMENTS]:
       repo.git.checkout(branchName)
       if autopull:
         repo.git.pull()
-    exit()
-  else:
-      print environment
+elif listEnv:
+  orderedEnvs = collections.OrderedDict(sorted(envs.items()))
+  for env in orderedEnvs:
+    print env
 
 print 'Done.';
