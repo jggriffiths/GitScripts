@@ -4,6 +4,7 @@ import os
 import sys
 import json
 import collections
+import argparse
 from git import Repo
 join = os.path.join
 
@@ -13,46 +14,33 @@ class MyProgressPrinter(RemoteProgress):
   def update(self, op_code, cur_count, max_count=None, message=''):
     print(op_code, cur_count, max_count, cur_count / (max_count or 100.0), message or "NO MESSAGE")
 
-
 ROOTDIR = '.'
 ENVFILE = '.gitEnvironments'
 ENVIRONMENTS = 'Environments'
 REPOS = 'repos'
 
-if len(sys.argv) < 2:
-  print 'Format:\n' + '$ python ' + sys.argv[0] + ' <environment name> <options>'
-  print '\n'
-  print 'Options:'
-  print '-p\tautomatically pulls'
-  print '-l\list environments'
-  exit()
+def loadParser():
+  parser = argparse.ArgumentParser()
+  parser.add_argument("-e","--envName", help = "name of the environment to get", action = "store")
+  parser.add_argument("-l", "--list",help = "list all of the stored environments", action = "store_true" )
+  parser.add_argument("-p", "--pull",help = "auto pull from remote when switching branch", action = "store_true")
+  return parser
 
-autopull = False
-listEnv = False
-envName = ''
-for arg in sys.argv:
-  if arg == sys.argv[0]:
-    continue
-  if arg == "-p":
-    autopull = True
-  elif arg == '-l':
-    listEnv = True
-  else:
-    envName = arg
-   
-print 'Fetching environment: ' + envName
+def loadEnvs():
+  existingEnv = {ENVIRONMENTS: dict()}
+  if os.path.isfile(ENVFILE):
+    with open(ENVFILE) as jsonFile:
+      existingEnv = json.load(jsonFile)
+  return existingEnv[ENVIRONMENTS]
 
-existingEnv = {ENVIRONMENTS: dict()}
-if os.path.isfile(ENVFILE):
-  with open(ENVFILE) as jsonFile:
-    existingEnv = json.load(jsonFile)
-
-
-envs = existingEnv[ENVIRONMENTS]
-if envName != '':
-  targetEnv = envs.get(envName, None)
+parser = loadParser()
+args = parser.parse_args()
+envs = loadEnvs()
+if args.envName:
+  print "Fetching environment: " + args.envName
+  targetEnv = envs.get(args.envName, None)
   if targetEnv != None:
-    print 'Found Target Env: ' + envName
+    print 'Found Target Env: ' + args.envName
     for dir in targetEnv[REPOS]:
       print 'Repo: ' + dir
       branchName = targetEnv[REPOS][dir]
@@ -63,11 +51,14 @@ if envName != '':
       #repo.heads[branchName].checkout()*/
       repo.git.fetch()
       repo.git.checkout(branchName)
-      if autopull:
+      if args.pull:
         repo.git.pull()
-elif listEnv:
+elif args.list:
   orderedEnvs = collections.OrderedDict(sorted(envs.items()))
   for env in orderedEnvs:
     print env
-
+else:
+  parser.print_help()
+  exit()
+  
 print 'Done.';

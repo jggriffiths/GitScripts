@@ -3,6 +3,7 @@
 import os
 import sys
 import json
+import argparse
 from git import Repo
 join = os.path.join
 
@@ -11,24 +12,24 @@ ENVFILE = '.gitEnvironments'
 ENVIRONMENTS = 'Environments'
 REPOS = 'repos'
 
-if len(sys.argv) < 2:
-  print 'Command format\n' + '$ python ' + sys.argv[0] + ' <environment name>'
-  print '\n'
-  print 'Options:'
-  print '-f\toverwrites exsiting environment'
-  print '-d\tdry run - only print existing environment setup' 
-  exit()
+def loadParser():
+  parser = argparse.ArgumentParser()
+  parser.add_argument("envName", help = "name of the environment to save", action = "store")
+  parser.add_argument("-f", "--overwrite", help = "overwrites existing environment", action = "store_true")
+  parser.add_argument("-d", "--dryrun", help = "only print existing environment setup", action = "store_true")
+  return parser
+  
+def loadEnvs():
+  existingEnv = {ENVIRONMENTS: dict()}
+  if os.path.isfile(ENVFILE):
+    with open(ENVFILE) as jsonFile:
+      existingEnv = json.load(jsonFile)
+  return existingEnv[ENVIRONMENTS]
 
-envName = sys.argv[1]
-print 'Creating environment ' + envName
+parser = loadParser()
+args = parser.parse_args()
 
-overwrite = False
-dryrun = False
-for arg in sys.argv:
-  if arg == "-f":
-    overwrite = True
-  if arg == "-d":
-    dryrun = True
+print 'Creating environment ' + args.envName
 
 repos = {}
 for dir in next(os.walk(ROOTDIR))[1]:
@@ -36,22 +37,18 @@ for dir in next(os.walk(ROOTDIR))[1]:
   repos[dir] = str(repo.active_branch);
   print 'Found: ' + dir + ' => ' + str(repo.active_branch)
 
-if dryrun:
+if args.dryrun:
   exit()
 
-existingEnv = {ENVIRONMENTS: dict()}
-if os.path.isfile(ENVFILE):
-  with open(ENVFILE) as jsonFile:
-    existingEnv = json.load(jsonFile)
-
-for environment in existingEnv[ENVIRONMENTS]:
-  if environment == envName and not overwrite:
-    print 'Environment ' + envName + ' already exists.  Execute with "-f" to overwrite'
+envs = loadEnvs()
+for environment in envs:
+  if environment == args.envName and not args.overwrite:
+    print 'Environment ' + args.envName + ' already exists.  Execute with "-f" to overwrite'
     exit()
 
 newEnv = {REPOS: repos}
-existingEnv[ENVIRONMENTS][envName] = newEnv
+envs[args.envName] = newEnv
 with open(ENVFILE, 'w+') as outfile:
-    json.dump(existingEnv, outfile)
+    json.dump({ENVIRONMENTS: envs}, outfile)
 
   
