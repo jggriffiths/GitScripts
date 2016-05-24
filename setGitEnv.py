@@ -41,14 +41,12 @@ if args.dryrun:
   exit()
 
 envs = loadEnvs()
-for environment in envs:
-  if environment == args.envName and not args.overwrite:
+targetEnv = envs.get(args.envName, None)
+if targetEnv and not args.overwrite:
     print 'Environment ' + args.envName + ' already exists.  Execute with "-f" to overwrite'
     exit()
-
+  
 newEnv = {REPOS: repos}
 envs[args.envName] = newEnv
 with open(ENVFILE, 'w+') as outfile:
     json.dump({ENVIRONMENTS: envs}, outfile)
-
-  
