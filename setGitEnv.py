@@ -1,7 +1,6 @@
 #!/usr/local/bin/python
 
-import os
-import sys
+import os 
 import json
 import argparse
 import sharedFuncs as shared
