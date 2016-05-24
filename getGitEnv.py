@@ -21,7 +21,7 @@ REPOS = 'repos'
 
 def loadParser():
   parser = argparse.ArgumentParser()
-  parser.add_argument("-e","--envName", help = "name of the environment to get", action = "store")
+  parser.add_argument("envName", help = "name of the environment to get", default = None, nargs = "?")
   parser.add_argument("-l", "--list",help = "list all of the stored environments", action = "store_true" )
   parser.add_argument("-p", "--pull",help = "auto pull from remote when switching branch", action = "store_true")
   return parser
