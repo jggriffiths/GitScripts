@@ -1,16 +1,11 @@
 #!/usr/local/bin/python
 
-import os
-import sys
+import os 
 import json
 import argparse
+import sharedFuncs as shared
 from git import Repo
 join = os.path.join
-
-ROOTDIR = '.'
-ENVFILE = '.gitEnvironments'
-ENVIRONMENTS = 'Environments'
-REPOS = 'repos'
 
 def loadParser():
   parser = argparse.ArgumentParser()
@@ -19,20 +14,13 @@ def loadParser():
   parser.add_argument("-d", "--dryrun", help = "only print existing environment setup", action = "store_true")
   return parser
   
-def loadEnvs():
-  existingEnv = {ENVIRONMENTS: dict()}
-  if os.path.isfile(ENVFILE):
-    with open(ENVFILE) as jsonFile:
-      existingEnv = json.load(jsonFile)
-  return existingEnv[ENVIRONMENTS]
-
 parser = loadParser()
 args = parser.parse_args()
 
 print 'Creating environment ' + args.envName
 
 repos = {}
-for dir in next(os.walk(ROOTDIR))[1]:
+for dir in next(os.walk(shared.ROOTDIR))[1]:
   repo = Repo(dir)
   repos[dir] = str(repo.active_branch);
   print 'Found: ' + dir + ' => ' + str(repo.active_branch)
@@ -40,13 +28,13 @@ for dir in next(os.walk(ROOTDIR))[1]:
 if args.dryrun:
   exit()
 
-envs = loadEnvs()
+envs = shared.loadEnvs()
 targetEnv = envs.get(args.envName, None)
 if targetEnv and not args.overwrite:
     print 'Environment ' + args.envName + ' already exists.  Execute with "-f" to overwrite'
     exit()
   
-newEnv = {REPOS: repos}
+newEnv = {shared.REPOS: repos}
 envs[args.envName] = newEnv
-with open(ENVFILE, 'w+') as outfile:
-    json.dump({ENVIRONMENTS: envs}, outfile)
+with open(shared.ENVFILE, 'w+') as outfile:
+    json.dump({shared.ENVIRONMENTS: envs}, outfile)
